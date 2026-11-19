@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quản lí mối quan hệ / Мои связи</title>
+<style>
+:root{
+  --bg:#f6f4ef;--card:#fff;--ink:#1f2933;--muted:#6b7280;--line:#c9c4b8;--accent:#b3261e;--accent2:#7a1a14;
+  --s-close:#2e9d5b;--s-good:#4c8dd6;--s-normal:#8a8f98;--s-far:#e0a526;--s-tense:#d9534f;--s-lost:#444;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#171717;--card:#242424;--ink:#eee;--muted:#a0a0a0;--line:#555;--accent:#e5534b;--accent2:#ff8a80}
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--accent);color:#fff}
+header h1{font-size:18px;margin:0}
+header small{opacity:.85;display:block;font-weight:400;font-size:12px}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;border-radius:8px;padding:8px 14px;background:var(--card);color:var(--ink)}
+button.primary{background:var(--accent);color:#fff}
+header button{background:rgba(255,255,255,.2);color:#fff}
+header button.primary{background:#fff;color:var(--accent2);font-weight:600}
+nav{display:flex;gap:4px;padding:10px 16px 0}
+nav button{border-radius:8px 8px 0 0;background:transparent;color:var(--muted)}
+nav button.active{background:var(--card);color:var(--ink);font-weight:600}
+main{background:var(--card);margin:0 16px 16px;border-radius:0 8px 8px 8px;padding:14px;min-height:60vh}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.toolbar input,.toolbar select{padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.toolbar input{flex:1;min-width:160px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--muted);margin-bottom:10px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
+#remind{margin-bottom:12px}
+.rem{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#fff4d6;color:#5b4300;border-radius:8px;padding:8px 10px;font-size:14px}
+@media (prefers-color-scheme:dark){.rem{background:#3a3115;color:#ffe9a8}}
+.rem b{margin-right:4px}
+.chip{border:0;background:rgba(0,0,0,.08);color:inherit;border-radius:14px;padding:3px 10px;font-size:13px}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.item{display:flex;gap:10px;border:1px solid var(--line);border-left:6px solid var(--s-normal);border-radius:8px;padding:10px;background:var(--bg);cursor:pointer}
+.item .txt{min-width:0}
+.item b{display:block}
+.item span.m{font-size:13px;color:var(--muted);display:block}
+.badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:10px;color:#fff;margin-top:6px}
+.av{flex:none;border-radius:50%;background:var(--line);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;overflow:hidden;background-size:cover;background-position:center}
+.av.s{width:36px;height:36px;font-size:15px}
+.av.l{width:64px;height:64px;font-size:26px}
+#treeWrap{overflow:auto;border:1px dashed var(--line);border-radius:8px;padding:10px;max-height:72vh}
+#tree{position:relative}
+#tree svg{position:absolute;left:0;top:0;pointer-events:none}
+.node{position:absolute;width:150px;height:84px;border:2px solid var(--s-normal);border-radius:10px;background:var(--card);padding:6px;cursor:pointer;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.15);display:flex;gap:6px}
+.node.me{outline:3px solid var(--accent)}
+.node .txt{min-width:0;flex:1}
+.node b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.node span{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+dialog{border:0;border-radius:12px;padding:16px;width:min(460px,94vw);max-height:92vh;overflow:auto;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog label{display:block;font-size:13px;color:var(--muted);margin-top:10px}
+dialog input,dialog select,dialog textarea{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);margin-top:3px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.photoRow{display:flex;gap:12px;align-items:center;margin-top:10px}
+.photoRow button{font-size:13px;padding:6px 10px;background:var(--bg);border:1px solid var(--line)}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+button.danger{background:#d9534f;color:#fff;margin-right:auto}
+h4{margin:16px 0 4px;font-size:14px}
+.logAdd{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.logAdd input[type=text]{grid-column:1/3}
+.logAdd button{grid-column:1/3;background:var(--accent);color:#fff}
+.logItem{display:flex;gap:8px;align-items:flex-start;border-bottom:1px solid var(--line);padding:6px 0;font-size:13px}
+.logItem .d{flex:none;color:var(--muted);width:82px}
+.logItem .t{flex:1}
+.logItem button{padding:0 6px;background:none;color:var(--muted)}
+.chk{display:flex;gap:6px;align-items:center;margin:0;font-size:13px}
+.chk input{width:auto;margin:0}
+.empty{color:var(--muted);text-align:center;padding:30px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Quản lí mối quan hệ<small>Мои связи · Управление отношениями</small></h1>
+  <div>
+    <button id="btnExport">Xuất / Экспорт</button>
+    <button id="btnImport">Nhập / Импорт</button>
+    <button class="primary" id="btnAdd">+ Thêm người / Добавить</button>
+  </div>
+</header>
+<input type="file" id="fileIn" accept=".json" hidden>
+<input type="file" id="photoIn" accept="image/*" hidden>
+
+<nav>
+  <button id="tabTree" class="active">Gia phả / Родословная</button>
+  <button id="tabList">Danh sách / Список</button>
+</nav>
+
+<main>
+  <div id="remind"></div>
+  <div class="legend" id="legend"></div>
+  <section id="viewTree">
+    <div id="treeWrap"><div id="tree"></div></div>
+  </section>
+  <section id="viewList" hidden>
+    <div class="toolbar">
+      <input id="search" placeholder="Tìm tên, ghi chú... / Поиск">
+      <select id="filter"></select>
+      <select id="fContact">
+        <option value="">Mọi mức liên lạc / Любой контакт</option>
+        <option value="30">Chưa liên lạc ≥ 30 ngày / ≥ 30 дн.</option>
+        <option value="60">Chưa liên lạc ≥ 60 ngày / ≥ 60 дн.</option>
+        <option value="90">Chưa liên lạc ≥ 90 ngày / ≥ 90 дн.</option>
+        <option value="never">Chưa từng liên lạc / Никогда</option>
+      </select>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+</main>
+
+<dialog id="dlg">
+  <h3 id="dlgTitle" style="margin:0">Thêm người</h3>
+  <div class="photoRow">
+    <div class="av l" id="avPrev"></div>
+    <div>
+      <button id="btnPhoto" type="button">Chọn ảnh / Фото</button>
+      <button id="btnPhotoDel" type="button">Bỏ ảnh</button>
+    </div>
+  </div>
+  <label>Họ tên / Имя *<input id="fName"></label>
+  <div class="row">
+    <label>Giới tính / Пол
+      <select id="fGender"><option value="">—</option><option value="m">Nam / Муж.</option><option value="f">Nữ / Жен.</option></select>
+    </label>
+    <label>Ngày sinh / Дата рождения<input id="fBirth" type="date"></label>
+  </div>
+  <div class="row">
+    <label>SĐT / Телефон<input id="fPhone"></label>
+    <label>Nơi ở / Город<input id="fPlace"></label>
+  </div>
+  <div class="row">
+    <label>Quan hệ với tôi / Кто мне
+      <input id="fRel" list="relList" placeholder="Bố, Bạn thân...">
+      <datalist id="relList"></datalist>
+    </label>
+    <label>Tình trạng / Статус<select id="fStatus"></select></label>
+  </div>
+  <div class="row">
+    <label>Cha/mẹ 1 / Родитель 1<select id="fP1"></select></label>
+    <label>Cha/mẹ 2 / Родитель 2<select id="fP2"></select></label>
+  </div>
+  <label>Vợ/chồng/người yêu / Супруг(а)<select id="fSpouse"></select></label>
+  <label>Ghi chú / Заметки<textarea id="fNote" rows="2"></textarea></label>
+
+  <h4>Lịch sử liên lạc / История общения</h4>
+  <div class="logAdd">
+    <input id="lDate" type="date">
+    <select id="lType">
+      <option>Gặp mặt / Встреча</option><option>Gọi điện / Звонок</option>
+      <option>Nhắn tin / Сообщение</option><option>Khác / Другое</option>
+    </select>
+    <input id="lText" type="text" placeholder="Nội dung / Содержание">
+    <button id="btnLog" type="button">+ Thêm lần liên lạc / Добавить</button>
+  </div>
+  <div id="logList"></div>
+
+  <h4>Sự kiện quan trọng / Важные события</h4>
+  <div class="logAdd">
+    <input id="eDate" type="date">
+    <label class="chk"><input id="eYear" type="checkbox"> Lặp hằng năm / Ежегодно</label>
+    <input id="eText" type="text" placeholder="Ví dụ: kỷ niệm cưới, thi đại học... / Например: годовщина">
+    <button id="btnEv" type="button">+ Thêm sự kiện / Добавить</button>
+  </div>
+  <div id="evList"></div>
+
+  <div class="actions">
+    <button class="danger" id="btnDel">Xóa</button>
+    <button id="btnCancel">Hủy</button>
+    <button class="primary" id="btnSave">Lưu</button>
+  </div>
+</dialog>
+
+<script>
+const KEY = "relmap_v1";
+const STATUS = {
+  close:  {vi:"Thân thiết", ru:"Близкие",   c:"var(--s-close)"},
+  good:   {vi:"Tốt",        ru:"Хорошие",   c:"var(--s-good)"},
+  normal: {vi:"Bình thường",ru:"Обычные",   c:"var(--s-normal)"},
+  far:    {vi:"Xa cách",    ru:"Отдалённые",c:"var(--s-far)"},
+  tense:  {vi:"Căng thẳng", ru:"Напряжённые",c:"var(--s-tense)"},
+  lost:   {vi:"Mất liên lạc",ru:"Нет связи",c:"var(--s-lost)"}
+};
+const RELS = ["Bố","Mẹ","Anh","Chị","Em","Ông nội","Bà nội","Ông ngoại","Bà ngoại","Chú","Bác","Cô","Dì","Cậu","Anh/chị em họ","Vợ/chồng","Người yêu","Con","Bạn thân","Bạn","Đồng nghiệp","Thầy/cô","Hàng xóm","Khác"];
+
+let state = load();
+let editingId = null;
+let draftLog = [];
+let draftEvents = [];
+let draftPhoto = "";
+
+function load(){
+  try{
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if(s && Array.isArray(s.people) && s.people.length) return s;
+  }catch(e){}
+  return {people:[{id:"me",name:"Tôi",gender:"",birth:"",phone:"",place:"",rel:"Bản thân",status:"close",p1:"",p2:"",spouse:"",note:"",photo:"",log:[],events:[],isMe:true}]};
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ alert("Không lưu được (bộ nhớ đầy?) / Не удалось сохранить"); }
+}
+const $ = id => document.getElementById(id);
+const byId = id => state.people.find(p => p.id === id);
+const uid = () => "p" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+function esc(s){ const d=document.createElement("div"); d.textContent = s ?? ""; return d.innerHTML; }
+
+/* ---------- Date helpers ---------- */
+const todayStr = () => { const d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+function parseD(s){ const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s||""); return m ? {y:+m[1], m:+m[2], d:+m[3]} : null; }
+function fmtD(s){ const p = parseD(s); return p ? `${String(p.d).padStart(2,"0")}/${String(p.m).padStart(2,"0")}/${p.y}` : ""; }
+function daysUntilBirthday(s){
+  const p = parseD(s); if(!p) return null;
+  const now = new Date(); const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let n = new Date(t0.getFullYear(), p.m-1, p.d);
+  if(n < t0) n = new Date(t0.getFullYear()+1, p.m-1, p.d);
+  return {days: Math.round((n - t0)/86400000), age: n.getFullYear() - p.y};
+}
+function lastContact(p){
+  const dates = (p.log||[]).map(l => l.date).filter(Boolean).sort();
+  return dates.length ? dates[dates.length-1] : null;
+}
+function daysAgo(s){
+  const p = parseD(s); if(!p) return null;
+  const now = new Date(); const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((t0 - new Date(p.y, p.m-1, p.d))/86400000);
+}
+function staleOk(p, c){
+  if(!c) return true;
+  if(p.isMe) return false;
+  const lc = lastContact(p);
+  if(c === "never") return !lc;
+  return !lc || daysAgo(lc) >= +c;
+}
+function daysUntilEvent(ev){
+  const p = parseD(ev.date); if(!p) return null;
+  const now = new Date(); const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if(ev.yearly){
+    let n = new Date(t0.getFullYear(), p.m-1, p.d);
+    if(n < t0) n = new Date(t0.getFullYear()+1, p.m-1, p.d);
+    return {days: Math.round((n - t0)/86400000), years: n.getFullYear() - p.y};
+  }
+  const d = Math.round((new Date(p.y, p.m-1, p.d) - t0)/86400000);
+  return d >= 0 ? {days: d, years: 0} : null;
+}
+function lastTxt(p){
+  const lc = lastContact(p); if(!lc) return "Chưa có liên lạc / Нет контактов";
+  const n = daysAgo(lc);
+  if(n <= 0) return "Liên lạc: hôm nay / сегодня";
+  return `Liên lạc cuối: ${n} ngày trước / ${n} дн. назад`;
+}
+
+/* ---------- Avatar ---------- */
+function avatarHTML(p, size){
+  const c = (STATUS[p.status] || STATUS.normal).c;
+  if(p.photo) return `<div class="av ${size}" style="background-image:url('${p.photo}')"></div>`;
+  return `<div class="av ${size}" style="background:${c}">${esc((p.name||"?").trim().charAt(0).toUpperCase())}</div>`;
+}
+
+/* ---------- Static init ---------- */
+function initStatic(){
+  $("legend").innerHTML = Object.values(STATUS).map(s =>
+    `<span><i class="dot" style="background:${s.c}"></i>${s.vi} / ${s.ru}</span>`).join("");
+  $("fStatus").innerHTML = Object.entries(STATUS).map(([k,s]) => `<option value="${k}">${s.vi} / ${s.ru}</option>`).join("");
+  $("filter").innerHTML = `<option value="">Tất cả / Все</option>` +
+    Object.entries(STATUS).map(([k,s]) => `<option value="${k}">${s.vi} / ${s.ru}</option>`).join("");
+  $("relList").innerHTML = RELS.map(r => `<option value="${r}">`).join("");
+}
+
+/* ---------- Tabs ---------- */
+function showTab(t){
+  $("viewTree").hidden = t !== "tree";
+  $("viewList").hidden = t !== "list";
+  $("tabTree").classList.toggle("active", t === "tree");
+  $("tabList").classList.toggle("active", t === "list");
+  render();
+}
+
+/* ---------- Birthday reminders ---------- */
+function renderRemind(){
+  const items = [];
+  state.people.forEach(p => {
+    const b = daysUntilBirthday(p.birth);
+    if(b && b.days <= 30) items.push({p, days:b.days, label:`🎂 ${b.age} tuổi / лет`});
+    (p.events || []).forEach(ev => {
+      const u = daysUntilEvent(ev);
+      if(u && u.days <= 30) items.push({p, days:u.days, label:`📌 ${ev.text || "Sự kiện"}${ev.yearly && u.years > 0 ? " (" + u.years + " năm / лет)" : ""}`});
+    });
+  });
+  items.sort((a,b) => a.days - b.days);
+  if(!items.length){ $("remind").innerHTML = ""; return; }
+  $("remind").innerHTML = `<div class="rem"><b>Sắp tới / Скоро:</b>` +
+    items.map(o => {
+      const w = o.days === 0 ? "hôm nay / сегодня" : `${o.days} ngày / ${o.days} дн.`;
+      return `<button class="chip" data-id="${o.p.id}">${esc(o.p.name)} · ${esc(o.label)} · ${w}</button>`;
+    }).join("") + `</div>`;
+  $("remind").querySelectorAll(".chip").forEach(el => el.onclick = () => openDlg(el.dataset.id));
+}
+
+/* ---------- List ---------- */
+function renderList(){
+  const q = $("search").value.trim().toLowerCase();
+  const f = $("filter").value;
+  const c = $("fContact").value;
+  const arr = state.people.filter(p =>
+    (!f || p.status === f) && staleOk(p, c) &&
+    (!q || [p.name,p.note,p.rel,p.place,p.phone].join(" ").toLowerCase().includes(q)));
+  $("list").innerHTML = arr.length ? arr.map(p => {
+    const s = STATUS[p.status] || STATUS.normal;
+    const b = daysUntilBirthday(p.birth);
+    return `<div class="item" data-id="${p.id}" style="border-left-color:${s.c}">
+      ${avatarHTML(p,"s")}
+      <div class="txt">
+        <b>${esc(p.name)}</b>
+        <span class="m">${esc(p.rel||"")}${p.birth ? " · 🎂 " + fmtD(p.birth) : ""}${p.place ? " · " + esc(p.place) : ""}</span>
+        ${p.phone ? `<span class="m">☎ ${esc(p.phone)}</span>` : ""}
+        <span class="m">${lastTxt(p)}</span>
+        ${(p.events||[]).length ? `<span class="m">📌 ${(p.events||[]).length} sự kiện / событий</span>` : ""}
+        <span class="badge" style="background:${s.c}">${s.vi}</span>
+        ${p.note ? `<span class="m" style="margin-top:4px">${esc(p.note)}</span>` : ""}
+      </div>
+    </div>`;
+  }).join("") : `<div class="empty">Chưa có ai. / Пока пусто.</div>`;
+  $("list").querySelectorAll(".item").forEach(el => el.onclick = () => openDlg(el.dataset.id));
+}
+
+/* ---------- Tree ---------- */
+const W = 150, H = 84, GX = 30, GY = 70;
+
+function renderTree(){
+  const ppl = state.people;
+  const gen = {};
+  ppl.forEach(p => gen[p.id] = 0);
+  for(let i = 0; i < 60; i++){
+    let changed = false;
+    ppl.forEach(p => {
+      let g = gen[p.id];
+      [p.p1, p.p2].forEach(pid => { if(pid && gen[pid] !== undefined && gen[pid] + 1 > g) g = gen[pid] + 1; });
+      if(p.spouse && gen[p.spouse] !== undefined && gen[p.spouse] > g) g = gen[p.spouse];
+      if(g !== gen[p.id]){ gen[p.id] = g; changed = true; }
+    });
+    if(!changed) break;
+  }
+  const maxG = Math.max(...Object.values(gen));
+  const rows = [];
+  for(let g = 0; g <= maxG; g++) rows.push(ppl.filter(p => gen[p.id] === g));
+  const maxCount = Math.max(...rows.map(r => r.length), 1);
+  const totalW = maxCount * (W + GX);
+  const pos = {};
+
+  rows.forEach((row, g) => {
+    const key = p => {
+      const xs = [p.p1, p.p2].filter(id => id && pos[id]).map(id => pos[id].x);
+      return xs.length ? xs.reduce((a,b)=>a+b,0) / xs.length : 1e9;
+    };
+    const sorted = row.map((p,i) => ({p,i,k:key(p)})).sort((a,b) => a.k - b.k || a.i - b.i).map(o => o.p);
+    const ordered = [], used = new Set();
+    sorted.forEach(p => {
+      if(used.has(p.id)) return;
+      ordered.push(p); used.add(p.id);
+      const sp = p.spouse && sorted.find(x => x.id === p.spouse);
+      if(sp && !used.has(sp.id)){ ordered.push(sp); used.add(sp.id); }
+      sorted.forEach(x => { if(x.spouse === p.id && !used.has(x.id)){ ordered.push(x); used.add(x.id); } });
+    });
+    const rowW = ordered.length * (W + GX) - GX;
+    const off = (totalW - GX - rowW) / 2;
+    ordered.forEach((p, i) => { pos[p.id] = {x: off + i * (W + GX), y: g * (H + GY)}; });
+  });
+
+  const tw = totalW, th = (maxG + 1) * (H + GY) - GY;
+  let svg = `<svg width="${tw}" height="${th}">`;
+  ppl.forEach(p => {
+    [p.p1, p.p2].forEach(pid => {
+      if(pid && pos[pid] && pos[p.id]){
+        const a = pos[pid], b = pos[p.id];
+        const x1 = a.x + W/2, y1 = a.y + H, x2 = b.x + W/2, y2 = b.y;
+        svg += `<path d="M${x1},${y1} C${x1},${y1+GY/2} ${x2},${y2-GY/2} ${x2},${y2}" fill="none" stroke="var(--line)" stroke-width="2"/>`;
+      }
+    });
+    if(p.spouse && pos[p.spouse] && p.id < p.spouse){
+      const a = pos[p.id], b = pos[p.spouse];
+      if(a.y === b.y){
+        const l = a.x < b.x ? a : b, r = a.x < b.x ? b : a;
+        svg += `<line x1="${l.x+W}" y1="${l.y+H/2}" x2="${r.x}" y2="${r.y+H/2}" stroke="#d9534f" stroke-width="2" stroke-dasharray="5,4"/>`;
+      }
+    }
+  });
+  svg += `</svg>`;
+
+  const nodes = ppl.map(p => {
+    const s = STATUS[p.status] || STATUS.normal;
+    const q = pos[p.id];
+    const b = daysUntilBirthday(p.birth);
+    const cake = b && b.days <= 7 ? " 🎂" : "";
+    const yr = parseD(p.birth) ? " · " + parseD(p.birth).y : "";
+    return `<div class="node ${p.isMe ? "me" : ""}" data-id="${p.id}" style="left:${q.x}px;top:${q.y}px;border-color:${s.c}">
+      ${avatarHTML(p,"s")}
+      <div class="txt">
+        <b>${esc(p.name)}${cake}</b>
+        <span>${esc(p.rel || "")}${yr}</span>
+        <span style="color:${s.c}">● ${s.vi}</span>
+        <span>${lastTxt(p).replace(/ \/ .*$/,"")}</span>
+      </div>
+    </div>`;
+  }).join("");
+
+  const t = $("tree");
+  t.style.width = tw + "px"; t.style.height = th + "px";
+  t.innerHTML = svg + nodes;
+  t.querySelectorAll(".node").forEach(el => el.onclick = () => openDlg(el.dataset.id));
+}
+
+function render(){
+  renderRemind();
+  if(!$("viewTree").hidden) renderTree(); else renderList();
+}
+
+/* ---------- Dialog ---------- */
+function fillPeopleSelect(sel, excludeId, value){
+  sel.innerHTML = `<option value="">—</option>` +
+    state.people.filter(p => p.id !== excludeId).map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join("");
+  sel.value = value || "";
+}
+
+function renderPhotoPrev(){
+  const name = $("fName").value || "?";
+  const st = $("fStatus").value;
+  $("avPrev").outerHTML = draftPhoto
+    ? `<div class="av l" id="avPrev" style="background-image:url('${draftPhoto}')"></div>`
+    : `<div class="av l" id="avPrev" style="background:${(STATUS[st]||STATUS.normal).c}">${esc(name.trim().charAt(0).toUpperCase())}</div>`;
+}
+
+function renderLog(){
+  const arr = draftLog.map((l,i) => ({l,i})).sort((a,b) => (b.l.date||"").localeCompare(a.l.date||""));
+  $("logList").innerHTML = arr.length ? arr.map(o => `
+    <div class="logItem">
+      <span class="d">${fmtD(o.l.date)}</span>
+      <span class="t"><b>${esc(o.l.type)}</b>${o.l.text ? " — " + esc(o.l.text) : ""}</span>
+      <button type="button" data-i="${o.i}" title="Xóa">✕</button>
+    </div>`).join("") : `<div class="empty" style="padding:10px">Chưa có / Пока нет</div>`;
+  $("logList").querySelectorAll("button").forEach(b => b.onclick = () => { draftLog.splice(+b.dataset.i, 1); renderLog(); });
+}
+
+function renderEv(){
+  const arr = draftEvents.map((e,i) => ({e,i})).sort((a,b) => (b.e.date||"").localeCompare(a.e.date||""));
+  $("evList").innerHTML = arr.length ? arr.map(o => `
+    <div class="logItem">
+      <span class="d">${fmtD(o.e.date)}</span>
+      <span class="t">${o.e.yearly ? "🔁 " : ""}${esc(o.e.text)}</span>
+      <button type="button" data-i="${o.i}" title="Xóa">✕</button>
+    </div>`).join("") : `<div class="empty" style="padding:10px">Chưa có / Пока нет</div>`;
+  $("evList").querySelectorAll("button").forEach(b => b.onclick = () => { draftEvents.splice(+b.dataset.i, 1); renderEv(); });
+}
+function addEv(){
+  const text = $("eText").value.trim();
+  if(!text){ $("eText").focus(); return; }
+  draftEvents.push({date: $("eDate").value || todayStr(), text, yearly: $("eYear").checked});
+  $("eText").value = ""; $("eYear").checked = false;
+  renderEv();
+}
+
+function openDlg(id){
+  editingId = id || null;
+  const p = id ? byId(id) : {name:"",gender:"",birth:"",phone:"",place:"",rel:"",status:"normal",p1:"",p2:"",spouse:"",note:"",photo:"",log:[],events:[]};
+  $("dlgTitle").textContent = id ? "Sửa thông tin / Изменить" : "Thêm người / Добавить";
+  $("fName").value = p.name; $("fGender").value = p.gender;
+  $("fBirth").value = parseD(p.birth) ? p.birth : "";
+  $("fPhone").value = p.phone; $("fPlace").value = p.place; $("fRel").value = p.rel;
+  $("fStatus").value = p.status; $("fNote").value = p.note;
+  fillPeopleSelect($("fP1"), id, p.p1);
+  fillPeopleSelect($("fP2"), id, p.p2);
+  fillPeopleSelect($("fSpouse"), id, p.spouse);
+  draftPhoto = p.photo || "";
+  draftLog = (p.log || []).map(l => Object.assign({}, l));
+  $("lDate").value = todayStr(); $("lText").value = "";
+  draftEvents = (p.events || []).map(e => Object.assign({}, e));
+  $("eDate").value = todayStr(); $("eText").value = ""; $("eYear").checked = false;
+  $("btnDel").style.display = (id && !p.isMe) ? "" : "none";
+  renderPhotoPrev(); renderLog(); renderEv();
+  $("dlg").showModal();
+}
+
+function addLog(){
+  const date = $("lDate").value || todayStr();
+  draftLog.push({date, type: $("lType").value, text: $("lText").value.trim()});
+  $("lText").value = "";
+  renderLog();
+}
+
+function loadPhoto(file){
+  const r = new FileReader();
+  r.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const S = 160, c = document.createElement("canvas");
+      c.width = c.height = S;
+      const m = Math.min(img.width, img.height);
+      c.getContext("2d").drawImage(img, (img.width-m)/2, (img.height-m)/2, m, m, 0, 0, S, S);
+      draftPhoto = c.toDataURL("image/jpeg", 0.8);
+      renderPhotoPrev();
+    };
+    img.src = r.result;
+  };
+  r.readAsDataURL(file);
+}
+
+function savePerson(){
+  const name = $("fName").value.trim();
+  if(!name){ $("fName").focus(); return; }
+  const data = {
+    name, gender: $("fGender").value, birth: $("fBirth").value,
+    phone: $("fPhone").value.trim(), place: $("fPlace").value.trim(),
+    rel: $("fRel").value.trim(), status: $("fStatus").value,
+    p1: $("fP1").value, p2: $("fP2").value, spouse: $("fSpouse").value, note: $("fNote").value.trim(),
+    photo: draftPhoto, log: draftLog, events: draftEvents
+  };
+  let p;
+  if(editingId){
+    p = byId(editingId);
+    const oldSpouse = p.spouse;
+    Object.assign(p, data);
+    if(oldSpouse && oldSpouse !== p.spouse){ const o = byId(oldSpouse); if(o && o.spouse === p.id) o.spouse = ""; }
+  } else {
+    p = Object.assign({id: uid()}, data);
+    state.people.push(p);
+  }
+  if(p.spouse){
+    const s = byId(p.spouse);
+    if(s){
+      if(s.spouse && s.spouse !== p.id){ const x = byId(s.spouse); if(x && x.spouse === s.id) x.spouse = ""; }
+      s.spouse = p.id;
+    }
+  }
+  save(); $("dlg").close(); render();
+}
+
+function deletePerson(){
+  const p = byId(editingId);
+  if(!p || p.isMe) return;
+  if(!confirm("Xóa " + p.name + "? / Удалить?")) return;
+  state.people = state.people.filter(x => x.id !== p.id);
+  state.people.forEach(x => {
+    if(x.p1 === p.id) x.p1 = "";
+    if(x.p2 === p.id) x.p2 = "";
+    if(x.spouse === p.id) x.spouse = "";
+  });
+  save(); $("dlg").close(); render();
+}
+
+/* ---------- Export / Import ---------- */
+function exportData(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "moi-quan-he.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function importData(file){
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const s = JSON.parse(r.result);
+      if(!s || !Array.isArray(s.people) || !s.people.length) throw 0;
+      state = s; save(); render();
+    }catch(e){ alert("File không hợp lệ / Неверный файл"); }
+  };
+  r.readAsText(file);
+}
+
+/* ---------- Events ---------- */
+$("btnAdd").onclick = () => openDlg(null);
+$("btnSave").onclick = savePerson;
+$("btnCancel").onclick = () => $("dlg").close();
+$("btnDel").onclick = deletePerson;
+$("btnLog").onclick = addLog;
+$("btnEv").onclick = addEv;
+$("fContact").onchange = renderList;
+$("btnPhoto").onclick = () => $("photoIn").click();
+$("btnPhotoDel").onclick = () => { draftPhoto = ""; renderPhotoPrev(); };
+$("photoIn").onchange = e => { if(e.target.files[0]) loadPhoto(e.target.files[0]); e.target.value = ""; };
+$("fName").oninput = () => { if(!draftPhoto) renderPhotoPrev(); };
+$("fStatus").onchange = () => { if(!draftPhoto) renderPhotoPrev(); };
+$("btnExport").onclick = exportData;
+$("btnImport").onclick = () => $("fileIn").click();
+$("fileIn").onchange = e => { if(e.target.files[0]) importData(e.target.files[0]); e.target.value = ""; };
+$("tabTree").onclick = () => showTab("tree");
+$("tabList").onclick = () => showTab("list");
+$("search").oninput = renderList;
+$("filter").onchange = renderList;
+
+initStatic();
+render();
+</script>
+</body>
+</html>
